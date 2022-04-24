@@ -1,5 +1,5 @@
 # pydrop
-
+DIY setup for measuring contanct angle. 
 
 # requirments
-opencv-python==4.3.0.36
+pip install -r requirements.txt
