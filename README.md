@@ -10,6 +10,7 @@ DIY setup for measuring contact angles using Rebel T3i DSLR camera and Ender 5 f
 # Keyboard Control
 ### Camera record/pan/zoom
 * p - turn recording on and off
+* c - capture an image
 * i - zoom in
 * o - zoom out
 * l - pan left

@@ -45,6 +45,7 @@ class PyDrop():
         self.zoom = 100
         self.pan_left_right = 0
         self.pan_up_down = 0
+        self.count = 0
 
     # function for sending gcode commands to 3d printer
     def command(self,command):
@@ -56,7 +57,6 @@ class PyDrop():
         #    if line == b'ok\n':
         #        self.ser.flush()
         #        break
-
 
     def onkeypress(self,event):
 
@@ -116,6 +116,10 @@ class PyDrop():
         elif event.name == 'x':
             self.terminate = True; print('Terminating Program')
 
+        elif event.name == 'c':
+            self.count += 1; print('Saving Image')
+            cv2.imwrite("frame%d.jpg" % self.count, self.image)
+
         else:
             pass
 
@@ -149,21 +153,24 @@ class PyDrop():
                 h = int(frame.shape[0]/2) +  self.pan_up_down
                 w = int(frame.shape[1]/2) +  self.pan_left_right
                 cropped = frame[h-self.zoom:h+self.zoom, w-self.zoom:w+self.zoom,]
-                resized = cv2.resize(cropped,(640, 480),interpolation=cv2.INTER_AREA)
+                self.image = cv2.resize(cropped,(640, 480),interpolation=cv2.INTER_NEAREST)
 
                 # show frame and cropped image side by side
-                cv2.imshow('Crop', np.concatenate((frame,resized), axis=1))
+                cv2.imshow('Crop', np.concatenate((frame,self.image), axis=1))
 
                 # save the current frames if recording is enabled
                 if self.record:
-                    video_out.write(resized)
-                if cv2.waitKey(20) == ord('q'):  # Introduce 20 milisecond delay. press q to exit.
+                    video_out.write(self.image)
+
+                # Introduce 20 milisecond delay. press q to exit.
+                if cv2.waitKey(20) == ord('q'):
                     break
 
                 # wait for user to push x to terminate program
                 if self.terminate:
                     print('Terminating Program')
                     break
+
             except:
                 break
 
