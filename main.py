@@ -3,6 +3,7 @@ import time
 import serial
 import keyboard
 import numpy as np
+import math
 import serial.tools.list_ports
 
 """
@@ -46,6 +47,12 @@ class PyDrop():
         self.pan_left_right = 0
         self.pan_up_down = 0
         self.count = 0
+
+        self.rect = (0,0,0,0)
+        self.startPoint = False
+        self.endPoint = False
+        self.points = []
+
 
     # function for sending gcode commands to 3d printer
     def command(self,command):
@@ -123,6 +130,20 @@ class PyDrop():
         else:
             pass
 
+    def on_click(self,event, x, y, flags, params):
+        # get mouse click
+        if event == cv2.EVENT_LBUTTONDOWN:
+            #cv2.circle(self.image)
+            if len(self.points) == 3:
+                self.points = []
+                self.points.append((x, y))
+            else:
+                self.points.append((x,y))
+
+    def getAngle(self,a, b, c):
+        ang = math.degrees(math.atan2(c[1] - b[1], c[0] - b[0]) - math.atan2(a[1] - b[1], a[0] - b[0]))
+        return 360 + ang if ang < 0 else ang
+
     def run(self):
 
         # intalized gcode commands
@@ -152,11 +173,36 @@ class PyDrop():
                 # pan / zoom according to keyboard commands
                 h = int(frame.shape[0]/2) +  self.pan_up_down
                 w = int(frame.shape[1]/2) +  self.pan_left_right
-                cropped = frame[h-self.zoom:h+self.zoom, w-self.zoom:w+self.zoom,]
-                self.image = cv2.resize(cropped,(640, 480),interpolation=cv2.INTER_NEAREST)
-
+                cropped = frame[h-self.zoom:h+self.zoom, w-self.zoom:w+self.zoom]
+                self.image = cv2.resize(cropped,(640, 480),interpolation=cv2.INTER_CUBIC)
                 # show frame and cropped image side by side
-                cv2.imshow('Crop', np.concatenate((frame,self.image), axis=1))
+
+
+                result = self.image.copy()
+
+                cv2.namedWindow('result')
+                cv2.setMouseCallback('result', self.on_click)
+
+                # drawing rectangle
+                #if self.startPoint == True and self.endPoint == True:
+                #    cv2.rectangle(result, (self.rect[0], self.rect[1]), (self.rect[2], self.rect[3]), (255, 0, 255), 2)
+
+                if len(self.points) >= 2:
+                    cv2.line(result, self.points[0], self.points[1], (0, 0, 0), 1)
+                    cv2.line(self.image, self.points[0], self.points[1], 0, 1)
+                if len(self.points) == 3:
+                    cv2.line(result, self.points[1], self.points[2], (0, 0, 0), 1)
+
+                    ang = self.getAngle(self.points[0], self.points[1], self.points[2])
+                    cv2.putText(result, str(int(ang)), self.points[1], cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2,
+                                cv2.LINE_AA)
+
+                    cv2.line(self.image, self.points[1], self.points[2], 0, 1)
+                    cv2.putText(self.image, str(int(ang)), self.points[1], cv2.FONT_HERSHEY_SIMPLEX, 1, 0, 2,
+                                cv2.LINE_AA)
+
+                cv2.imshow('user', np.concatenate((frame, self.image), axis=1))
+                cv2.imshow('result', result)
 
                 # save the current frames if recording is enabled
                 if self.record:
