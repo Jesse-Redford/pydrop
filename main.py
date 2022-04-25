@@ -177,10 +177,10 @@ class PyDrop():
                 cv2.namedWindow('result')
                 cv2.setMouseCallback('result', self.on_click)
                 if len(self.points) >= 2:
-                    cv2.line(result, self.points[0], self.points[1], (0, 0, 0), 1)
+                    cv2.line(result, self.points[0], self.points[1], (0, 0, 0), 2)
                     cv2.line(self.image, self.points[0], self.points[1], 0, 1)
                 if len(self.points) == 3:
-                    cv2.line(result, self.points[1], self.points[2], (0, 0, 0), 1)
+                    cv2.line(result, self.points[1], self.points[2], (0, 0, 0), 2)
 
                     ang = self.getAngle(self.points[0], self.points[1], self.points[2])
                     cv2.putText(result, str(int(ang)), self.points[1], cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2,
